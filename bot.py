@@ -30,58 +30,67 @@ def find_fonts():
     else:
         logger.warning(f"Шрифт не найден: {FONT_PATH}")
 
-# ─── 50 МАК карт ────────────────────────────────────────────────────────
+# ─── 50 МАК карт "УМ В ГАРМОНИИ" ───────────────────────────────────────
+# Авторская колода Ольги Сазыкиной
+# Структура: id, name_ru, name_en, emoji, theme, ai_prompt, color, image_path
 MAK_CARDS = [
-    {"name": "Одинокое дерево", "emoji": "🌳", "theme": "одиночество и сила", "color": "#2D5016"},
-    {"name": "Бушующее море", "emoji": "🌊", "theme": "эмоции и хаос", "color": "#0D47A1"},
-    {"name": "Закрытая дверь", "emoji": "🚪", "theme": "границы и возможности", "color": "#5D4037"},
-    {"name": "Горящая свеча", "emoji": "🕯️", "theme": "надежда и свет", "color": "#E65100"},
-    {"name": "Разорванная нить", "emoji": "🧵", "theme": "связи и потери", "color": "#6A1B9A"},
-    {"name": "Цветок в трещине", "emoji": "🌸", "theme": "стойкость и рост", "color": "#AD1457"},
-    {"name": "Туманный лес", "emoji": "🌫️", "theme": "неизвестность и страх", "color": "#37474F"},
-    {"name": "Пустая клетка", "emoji": "🪤", "theme": "свобода и ограничения", "color": "#4E342E"},
-    {"name": "Два зеркала", "emoji": "🪞", "theme": "отражение и самопознание", "color": "#283593"},
-    {"name": "Мост над пропастью", "emoji": "🌉", "theme": "переход и решения", "color": "#1565C0"},
-    {"name": "Засохший росток", "emoji": "🌱", "theme": "усилия и результат", "color": "#33691E"},
-    {"name": "Полная луна", "emoji": "🌕", "theme": "цикличность и завершённость", "color": "#1A237E"},
-    {"name": "Разбитое зеркало", "emoji": "💔", "theme": "боль и трансформация", "color": "#B71C1C"},
-    {"name": "Тихая гавань", "emoji": "⚓", "theme": "безопасность и покой", "color": "#006064"},
-    {"name": "Переплетённые корни", "emoji": "🌿", "theme": "семья и связь", "color": "#1B5E20"},
-    {"name": "Падающий лист", "emoji": "🍂", "theme": "отпускание и принятие", "color": "#BF360C"},
-    {"name": "Звёздное небо", "emoji": "✨", "theme": "мечты и ориентиры", "color": "#0D47A1"},
-    {"name": "Лабиринт", "emoji": "🌀", "theme": "поиск пути и замешательство", "color": "#4A148C"},
-    {"name": "Распускающийся бутон", "emoji": "🌺", "theme": "развитие и потенциал", "color": "#880E4F"},
-    {"name": "Сломанный мост", "emoji": "🪵", "theme": "разрыв и восстановление", "color": "#3E2723"},
-    {"name": "Маска", "emoji": "🎭", "theme": "роли и подлинность", "color": "#311B92"},
-    {"name": "Тихая вода", "emoji": "💧", "theme": "спокойствие и глубина", "color": "#01579B"},
-    {"name": "Горная вершина", "emoji": "⛰️", "theme": "цели и достижения", "color": "#455A64"},
-    {"name": "Пустая колыбель", "emoji": "🌙", "theme": "потери и желания", "color": "#1A237E"},
-    {"name": "Два пути", "emoji": "🛤️", "theme": "выбор и сомнения", "color": "#4E342E"},
-    {"name": "Солнечный луч", "emoji": "☀️", "theme": "радость и тепло", "color": "#E65100"},
-    {"name": "Тёмная нора", "emoji": "🕳️", "theme": "страхи и укрытие", "color": "#212121"},
-    {"name": "Танцующая фигура", "emoji": "💃", "theme": "свобода и выражение", "color": "#C62828"},
-    {"name": "Раскрытые ладони", "emoji": "🤲", "theme": "доверие и принятие", "color": "#00695C"},
-    {"name": "Буря на горизонте", "emoji": "⛈️", "theme": "тревога и предчувствие", "color": "#263238"},
-    {"name": "Домик в горах", "emoji": "🏡", "theme": "уют и одиночество", "color": "#33691E"},
-    {"name": "Сжатый кулак", "emoji": "✊", "theme": "контроль и сила", "color": "#B71C1C"},
-    {"name": "Плывущая лодка", "emoji": "🚣", "theme": "движение и независимость", "color": "#0277BD"},
-    {"name": "Спящий ребёнок", "emoji": "👶", "theme": "уязвимость и невинность", "color": "#6A1B9A"},
-    {"name": "Огонь", "emoji": "🔥", "theme": "страсть и разрушение", "color": "#D84315"},
-    {"name": "Осколки стекла", "emoji": "🔮", "theme": "хрупкость и красота", "color": "#4527A0"},
-    {"name": "Объятия", "emoji": "🤗", "theme": "близость и поддержка", "color": "#AD1457"},
-    {"name": "Пустая дорога", "emoji": "🛣️", "theme": "одиночество и свобода", "color": "#37474F"},
-    {"name": "Переполненный стакан", "emoji": "🥂", "theme": "предел и наполненность", "color": "#827717"},
-    {"name": "Зимний лес", "emoji": "❄️", "theme": "оцепенение и тишина", "color": "#546E7A"},
-    {"name": "Прыжок в воду", "emoji": "🏊", "theme": "риск и решительность", "color": "#00838F"},
-    {"name": "Птица в полёте", "emoji": "🕊️", "theme": "свобода и уход", "color": "#1565C0"},
-    {"name": "Якорь на дне", "emoji": "⚓", "theme": "привязанность и стабильность", "color": "#004D40"},
-    {"name": "Расцветающий сад", "emoji": "🌻", "theme": "забота и рост", "color": "#558B2F"},
-    {"name": "Пустой стул", "emoji": "🪑", "theme": "отсутствие и ожидание", "color": "#3E2723"},
-    {"name": "Волчья стая", "emoji": "🐺", "theme": "принадлежность и инстинкты", "color": "#424242"},
-    {"name": "Раскрытая книга", "emoji": "📖", "theme": "знание и история", "color": "#4E342E"},
-    {"name": "Упавшая корона", "emoji": "👑", "theme": "власть и потеря статуса", "color": "#F9A825"},
-    {"name": "Гнездо без птиц", "emoji": "🪺", "theme": "пустое место и уход", "color": "#5D4037"},
-    {"name": "Переплетённые руки", "emoji": "🤝", "theme": "союз и взаимозависимость", "color": "#00695C"},
+    # БЛОК 1: ФУНДАМЕНТ И ЦЕНТР (Карты 1-10)
+    {"id": 1, "name": "ЦЕНТР", "name_en": "The Center", "emoji": "🎴", "theme": "Найти свой центр, стабильность, внутренний стержень", "prompt": "A meditative figure standing in the center of concentric circles, geometric patterns radiating outward, golden and indigo color palette --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 2, "name": "ВОСХОЖДЕНИЕ", "name_en": "The Ascent", "emoji": "⛰️", "theme": "Духовный и личностный рост, развитие, преодоление", "prompt": "Silhouettes climbing upward through golden light and mountains, rays of sunrise breaking through mist --ar 1:1.4 --quality 2", "color": "#CD7F32", "image": None},
+    {"id": 3, "name": "КОРНИ И ВЕТВИ", "name_en": "Roots and Branches", "emoji": "🌳", "theme": "Связь с прошлым и будущим, баланс глубины и роста", "prompt": "Majestic tree with visible roots deep in earth and branches reaching to sky, vertical unity --ar 1:1.4 --quality 2", "color": "#7C8F8F", "image": None},
+    {"id": 4, "name": "ЗЕРКАЛО ВОДЫ", "name_en": "Water Mirror", "emoji": "💧", "theme": "Самопознание, отражение, честность перед собой", "prompt": "Mirror-like water surface reflecting sky and clouds, silhouette of person looking down --ar 1:1.4 --quality 2", "color": "#4B0082", "image": None},
+    {"id": 5, "name": "МОСТ", "name_en": "The Bridge", "emoji": "🌉", "theme": "Переход между состояниями, преодоление пропастей, соединение полюсов", "prompt": "Elegant bridge crossing over misty chasm, transitional moment, promise of passage --ar 1:1.4 --quality 2", "color": "#A66D6D", "image": None},
+    {"id": 6, "name": "СВЕТ ВНУТРИ", "name_en": "Inner Light", "emoji": "💡", "theme": "Внутренний ресурс, духовное пробуждение, собственная сила", "prompt": "Silhouette with bright glowing light emanating from heart, inner fire and spiritual awakening --ar 1:1.4 --quality 2", "color": "#E65100", "image": None},
+    {"id": 7, "name": "РАЗВЁРТЫВАНИЕ", "name_en": "Unfolding", "emoji": "🌺", "theme": "Раскрытие потенциала, раскрытие крыльев, становление собой", "prompt": "Unfolding flower petals or butterfly wings opening gracefully in motion --ar 1:1.4 --quality 2", "color": "#AD1457", "image": None},
+    {"id": 8, "name": "КОЛОДЕЦ", "name_en": "The Well", "emoji": "🕳️", "theme": "Глубинные ресурсы, скрытая мудрость, колодец вдохновения", "prompt": "Ancient stone well with deep darkness and glimmer of water at bottom --ar 1:1.4 --quality 2", "color": "#37474F", "image": None},
+    {"id": 9, "name": "ДВА ПОЛЮСА", "name_en": "The Two Poles", "emoji": "☯️", "theme": "Инь-ян, баланс противоположностей, дуальность", "prompt": "Yin-yang symbol using indigo and gold colors, balance of opposites --ar 1:1.4 --quality 2", "color": "#4B0082", "image": None},
+    {"id": 10, "name": "ПРОБУЖДЕНИЕ", "name_en": "Awakening", "emoji": "🌅", "theme": "Просветление, новое видение, начало осознания", "prompt": "Window with first rays of sunrise, figure waking to light, dawn scene --ar 1:1.4 --quality 2", "color": "#F9A825", "image": None},
+
+    # БЛОК 2: ТРАНСФОРМАЦИЯ И ДВИЖЕНИЕ (Карты 11-25)
+    {"id": 11, "name": "СПИРАЛЬ", "name_en": "The Spiral", "emoji": "🌀", "theme": "Спиралевидное развитие, циклы и прогресс", "prompt": "Spiral ascending from center, color transition from indigo to golden light --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 12, "name": "КРИСТАЛЛ", "name_en": "The Crystal", "emoji": "💎", "theme": "Ясность, просветлённость, кристаллизация идей", "prompt": "Geometric crystal with multiple facets, light refracting, luminosity --ar 1:1.4 --quality 2", "color": "#7C8F8F", "image": None},
+    {"id": 13, "name": "ОБНИМАЮЩИЕ РУКИ", "name_en": "Embracing Hands", "emoji": "🤝", "theme": "Поддержка, единство, принятие, дарование и получение", "prompt": "Two hands embracing or cupping light, warmth and support --ar 1:1.4 --quality 2", "color": "#A66D6D", "image": None},
+    {"id": 14, "name": "МЕДИТАЦИЯ", "name_en": "Meditation", "emoji": "🧘", "theme": "Внутренний покой, йога, спокойствие ума, присутствие", "prompt": "Sitting figure in meditation pose in nature, soft golden light --ar 1:1.4 --quality 2", "color": "#4B0082", "image": None},
+    {"id": 15, "name": "ТРАНСФОРМАЦИЯ", "name_en": "Transformation", "emoji": "🦋", "theme": "Глубокое изменение, метаморфоза, смерть и рождение", "prompt": "Metamorphosis from caterpillar to butterfly, magical transition --ar 1:1.4 --quality 2", "color": "#CD7F32", "image": None},
+    {"id": 16, "name": "ХРАМ ВНУТРИ", "name_en": "Inner Temple", "emoji": "⛩️", "theme": "Священное пространство внутри, святилище, убежище", "prompt": "Temple architecture inside human figure, golden light, holy space --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 17, "name": "ПЛЕТЕНИЕ", "name_en": "Weaving", "emoji": "🧵", "theme": "Переплетение жизненных нитей, ткань судьбы", "prompt": "Interwoven threads of different colors creating pattern, hands weaving --ar 1:1.4 --quality 2", "color": "#A66D6D", "image": None},
+    {"id": 18, "name": "ВОСТОЧНЫЕ ВОРОТА", "name_en": "The Eastern Gate", "emoji": "🚪", "theme": "Портал, возможность, восток и новое начало", "prompt": "Eastern-style ornate gates opening onto new landscape with light --ar 1:1.4 --quality 2", "color": "#CD7F32", "image": None},
+    {"id": 19, "name": "ДУШЕВНОЕ ОЗЕРО", "name_en": "Soul's Lake", "emoji": "🌌", "theme": "Глубина чувства, отражение ночного неба в воде", "prompt": "Night lake reflecting stars and moon, perfectly still surface --ar 1:1.4 --quality 2", "color": "#4B0082", "image": None},
+    {"id": 20, "name": "ЛАБИРИНТ РЕШЕНИЙ", "name_en": "The Labyrinth", "emoji": "🌀", "theme": "Путь выбора, лабиринт как медитативный путь", "prompt": "Beautiful labyrinth with light glowing at center or wise figure --ar 1:1.4 --quality 2", "color": "#7C8F8F", "image": None},
+    {"id": 21, "name": "ЗВЕЗДНАЯ КАРТА", "name_en": "Celestial Map", "emoji": "⭐", "theme": "Космическая связь, судьба, ориентирование по звёздам", "prompt": "Night sky with constellations forming into a celestial map --ar 1:1.4 --quality 2", "color": "#4B0082", "image": None},
+    {"id": 22, "name": "СЕМЕНА", "name_en": "Seeds", "emoji": "🌱", "theme": "Потенциал, рост, плодородие, начало", "prompt": "Seeds falling into fertile earth or sprouting, potential growth --ar 1:1.4 --quality 2", "color": "#33691E", "image": None},
+    {"id": 23, "name": "ЭКРАН ЧУВСТВ", "name_en": "The Emotive Screen", "emoji": "😌", "theme": "Эмоции на лице, выражение чувств, маска и подлинность", "prompt": "Portrait with multiple layers of emotions, light and shadow --ar 1:1.4 --quality 2", "color": "#A66D6D", "image": None},
+    {"id": 24, "name": "ГАРМОНИЧНЫЙ САД", "name_en": "The Harmonious Garden", "emoji": "🌻", "theme": "Многоуровневая красота, порядок в природе, культивация жизни", "prompt": "Multi-layered garden in balance and harmony, diverse flowers --ar 1:1.4 --quality 2", "color": "#558B2F", "image": None},
+    {"id": 25, "name": "ПОЛЁТ", "name_en": "Flight", "emoji": "🕊️", "theme": "Свобода, взлёт, выход за границы, парение", "prompt": "Human or bird in flight above clouds, freedom and liberation --ar 1:1.4 --quality 2", "color": "#0277BD", "image": None},
+
+    # БЛОК 3: БАЛАНС И ПРОТИВОПОЛОЖНОСТИ (Карты 26-40)
+    {"id": 26, "name": "ВОЛНЫ И КАТАМАРАН", "name_en": "Waves and Catamaran", "emoji": "🌊", "theme": "Движение через нестабильность, баланс на волнах жизни", "prompt": "Small catamaran balanced on waves, stability amidst chaos --ar 1:1.4 --quality 2", "color": "#0277BD", "image": None},
+    {"id": 27, "name": "МАЯТНИК", "name_en": "The Pendulum", "emoji": "⏳", "theme": "Балансирование между полюсами, ритм жизни", "prompt": "Swinging pendulum between two points, balanced motion --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 28, "name": "ТЕАТРАЛЬНАЯ МАСКА", "name_en": "The Theatrical Mask", "emoji": "🎭", "theme": "Роли и их трансформация, маска и подлинность", "prompt": "Theater masks morphing or layered, roles and transformation --ar 1:1.4 --quality 2", "color": "#C62828", "image": None},
+    {"id": 29, "name": "СПЯЩИЙ БУДДА", "name_en": "Sleeping Buddha", "emoji": "🙏", "theme": "Умиротворение, отпускание, спокойный ум", "prompt": "Reclining Buddha figure smiling peacefully, surrounded by soft light --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 30, "name": "ОГОНЬ И ЛЁД", "name_en": "Fire and Ice", "emoji": "🔥❄️", "theme": "Интеграция противоположностей, страсть и спокойствие", "prompt": "Fire and ice elements meeting, creating dynamic interaction --ar 1:1.4 --quality 2", "color": "#D84315", "image": None},
+    {"id": 31, "name": "ЛЕСТНИЦА ЗВЁЗД", "name_en": "Stairway of Stars", "emoji": "🪜", "theme": "Восхождение пошаговое, путь развития", "prompt": "Staircase ascending into stars, each step glowing --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 32, "name": "КОЛЫБЕЛЬ", "name_en": "The Cradle", "emoji": "👶", "theme": "Безопасность, детскость, нежность, материнское тепло", "prompt": "Antique cradle swaying gently, warm soft light inside --ar 1:1.4 --quality 2", "color": "#AD1457", "image": None},
+    {"id": 33, "name": "УРАГАН И ГЛА УРАГАНА", "name_en": "Hurricane and Its Eye", "emoji": "🌪️", "theme": "Спокойствие в центре хаоса, медитативный центр в бури", "prompt": "Hurricane with swirling clouds, peaceful eye at center --ar 1:1.4 --quality 2", "color": "#546E7A", "image": None},
+    {"id": 34, "name": "ДВОЙНОЕ ЗЕРКАЛО", "name_en": "Dual Mirror", "emoji": "🪞", "theme": "Рефлексия и метарефлексия, глубокое самопознание", "prompt": "Two mirrors reflecting each other creating infinite reflection --ar 1:1.4 --quality 2", "color": "#4B0082", "image": None},
+    {"id": 35, "name": "ГЕОМЕТРИЧЕСКИЙ САД", "name_en": "The Geometric Garden", "emoji": "🔷", "theme": "Структурированная гармония, порядок как красота", "prompt": "Geometric shapes creating garden, sacred geometry --ar 1:1.4 --quality 2", "color": "#7C8F8F", "image": None},
+    {"id": 36, "name": "ПРОЩАНИЕ И ВСТРЕЧА", "name_en": "Farewell and Meeting", "emoji": "👋", "theme": "Циклы, заканчивание и начинание, встреча старого и нового", "prompt": "Two figures on horizon, sunset and sunrise simultaneously --ar 1:1.4 --quality 2", "color": "#F9A825", "image": None},
+    {"id": 37, "name": "КНИГА ЖИЗНИ", "name_en": "The Book of Life", "emoji": "📖", "theme": "История жизни, автор собственной жизни", "prompt": "Open ancient book with pages flowing into infinity --ar 1:1.4 --quality 2", "color": "#4E342E", "image": None},
+    {"id": 38, "name": "МАЯТНИК ВРЕМЕНИ", "name_en": "The Time Pendulum", "emoji": "⏰", "theme": "Цикличность времени, момент сейчас, вечное движение", "prompt": "Pendulum with clock faces and flowing watercolor colors --ar 1:1.4 --quality 2", "color": "#546E7A", "image": None},
+    {"id": 39, "name": "УТЮЖОК (СТИРАНИЕ)", "name_en": "The Iron", "emoji": "🧥", "theme": "Очищение, разглаживание морщин прошлого", "prompt": "Iron smoothing wrinkled fabric into pristine surface --ar 1:1.4 --quality 2", "color": "#3E2723", "image": None},
+    {"id": 40, "name": "СОБИРАНИЕ СИЛЫ", "name_en": "Gathering Strength", "emoji": "✨", "theme": "Аккумуляция ресурсов, мобилизация, готовность к действию", "prompt": "Figure collecting stars or light drops in hands --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+
+    # БЛОК 4: ИНТЕГРАЦИЯ И ЦЕЛОСТНОСТЬ (Карты 41-50)
+    {"id": 41, "name": "НИТЬ АРИАДНЫ", "name_en": "Ariadne's Thread", "emoji": "🧵", "theme": "Путь через лабиринт, спасающая нить, помощь в пути", "prompt": "Thread leading out of labyrinth into light, golden thread --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 42, "name": "ХРУСТАЛЬНЫЙ ДВОРЕЦ", "name_en": "The Crystal Palace", "emoji": "👑", "theme": "Величественная внутренняя красота, дворец как внутреннее величие", "prompt": "Magnificent transparent crystal palace with golden columns --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 43, "name": "МОЛЧАНИЕ МЕЖДУ ЗВУКАМИ", "name_en": "Silence Between Sounds", "emoji": "🤐", "theme": "Пауза, пустота как ресурс, молчание", "prompt": "Abstract composition with sound waves and large spaces of silence --ar 1:1.4 --quality 2", "color": "#37474F", "image": None},
+    {"id": 44, "name": "ДВА КРЫЛА", "name_en": "Two Wings", "emoji": "🪶", "theme": "Симметрия, парные качества, баланс половин", "prompt": "Two large beautiful symmetrical wings, luminous and ready --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 45, "name": "КОРОНА ВНУТРИ", "name_en": "The Inner Crown", "emoji": "✨", "theme": "Собственное величие, принятие своей царственности", "prompt": "Glowing crown above human figure or born from inner light --ar 1:1.4 --quality 2", "color": "#F9A825", "image": None},
+    {"id": 46, "name": "СЛИЯНИЕ РЕК", "name_en": "Confluence of Rivers", "emoji": "🌊", "theme": "Встреча путей, слияние разных потоков в одно целое", "prompt": "Rivers meeting and merging into one powerful stream --ar 1:1.4 --quality 2", "color": "#0277BD", "image": None},
+    {"id": 47, "name": "ГЛАЗ ТИГРА", "name_en": "Tiger's Eye", "emoji": "👁️", "theme": "Сила и мудрость, зоркость, готовность, грация в силе", "prompt": "Intense gaze of tiger eye, profile or direct, mixing gold and black --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
+    {"id": 48, "name": "СВЕТЛЫЙ КОРИДОР", "name_en": "Bright Corridor", "emoji": "🚪", "theme": "Выход из темноты, направленность к свету", "prompt": "Long corridor leading toward bright light at the end --ar 1:1.4 --quality 2", "color": "#E65100", "image": None},
+    {"id": 49, "name": "ДОЖДЬ И РАДУГА", "name_en": "Rain and Rainbow", "emoji": "🌈", "theme": "Очищение и обновление, надежда после слёз", "prompt": "Rain falling with rainbow appearing simultaneously in sky --ar 1:1.4 --quality 2", "color": "#0277BD", "image": None},
+    {"id": 50, "name": "СПИРАЛЬ СВЕТА", "name_en": "Spiral of Light", "emoji": "✨", "theme": "Восхождение к просветлению, интеграция всех уровней", "prompt": "Spiral ascending upward where each turn becomes brighter, star at top --ar 1:1.4 --quality 2", "color": "#D4AF37", "image": None},
 ]
 
 # ─── Генерация изображения карты ─────────────────────────────────────────
@@ -158,8 +167,9 @@ def generate_card_image(card: dict) -> bytes:
         size = random.randint(1, 3)
         draw.ellipse([(sx, sy), (sx + size, sy + size)], fill=(255, 255, 255))
 
-    # Название карты
-    card_name = f"«{card['name']}»"
+    # Номер и название карты
+    card_num = card.get("id", 1)
+    card_name = f"№{card_num} {card['name']}"
     bbox = draw.textbbox((0, 0), card_name, font=font_big)
     tw = bbox[2] - bbox[0]
     name_y = 360
@@ -202,16 +212,17 @@ def generate_card_image(card: dict) -> bytes:
 
 # ─── Генерация послания через Claude API ────────────────────────────────
 async def generate_message(card: dict) -> str:
-    prompt = f"""Ты — мудрый психолог и проводник. Клиент вытянул МАК карту.
+    """Генерирует психологическое послание через Claude API."""
+    prompt = f"""Ты — мудрый психолог и проводник. Клиент вытянул МАК карту авторской колоды "УМ В ГАРМОНИИ".
 
-Карта: «{card['name']}» {card['emoji']}
-Тема карты: {card['theme']}
+Карта: «{card['name']}» ({card.get('name_en', '')}) {card.get('emoji', '🎴')}
+Психологическая тема: {card['theme']}
 
 Напиши короткое психологическое послание для клиента (3-4 предложения):
-- Начни с наблюдения об образе карты
-- Дай мягкий вопрос для размышления
+- Начни с наблюдения об образе и теме карты
+- Дай мягкий, глубокий вопрос для размышления
 - Заверши тёплым посланием-поддержкой
-- Пиши на «ты», тепло и без психологического жаргона
+- Пиши на «ты», тепло, без психологического жаргона
 - Не упоминай название карты в тексте"""
 
     try:
@@ -232,21 +243,33 @@ async def generate_message(card: dict) -> str:
             data = response.json()
             return data["content"][0]["text"]
     except Exception as e:
-        logger.error(f"Ошибка API: {e}")
-        return "Сегодня эта карта говорит тебе: остановись и прислушайся к себе. Что ты чувствуешь прямо сейчас?"
+        logger.error(f"Ошибка API Claude: {e}")
+        return f"Эта карта говорит тебе: {card['theme']}. Прислушайся к себе — что ты чувствуешь прямо сейчас?"
 
 
 # ─── Отправка карты ──────────────────────────────────────────────────────
 async def send_card(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+    """Отправляет случайную МАК карту с психологическим посланием."""
     card = random.choice(MAK_CARDS)
     message_text = await generate_message(card)
 
-    # Генерируем изображение карты
-    image_bytes = generate_card_image(card)
+    # Проверяем, есть ли реальное изображение карты
+    image_bytes = None
+    if card.get("image") and Path(card["image"]).exists():
+        # Используем реальное изображение
+        with open(card["image"], "rb") as f:
+            image_bytes = f.read()
+        logger.info(f"📸 Использую реальное изображение: {card['image']}")
+    else:
+        # Генерируем изображение программно
+        image_bytes = generate_card_image(card)
+        logger.info(f"🎨 Генерирую изображение для карты #{card['id']}: {card['name']}")
 
     caption = (
         f"🎴 *Карта дня*\n\n"
-        f"*«{card['name']}»* {card['emoji']}\n\n"
+        f"*№{card['id']} {card['name']}*\n"
+        f"_{card.get('name_en', '')}_ {card['emoji']}\n\n"
+        f"_{card['theme']}_\n\n"
         f"{message_text}\n\n"
         f"─────────────────\n"
         f"_Напиши /card чтобы вытянуть новую карту_"
