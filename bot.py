@@ -19,28 +19,16 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 # ─── Шрифт ──────────────────────────────────────────────────────────────
-FONT_SEARCH_PATHS = [
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-    "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
-    "/usr/share/fonts/TTF/DejaVuSans.ttf",
-]
-FONT_PATH = None
-FONT_REGULAR_PATH = None
+BASE_DIR = Path(__file__).resolve().parent
+FONT_PATH = str(BASE_DIR / "fonts" / "DejaVuSans-Bold.ttf")
+FONT_REGULAR_PATH = str(BASE_DIR / "fonts" / "DejaVuSans.ttf")
 
 def find_fonts():
-    """Находит системные шрифты DejaVu."""
-    global FONT_PATH, FONT_REGULAR_PATH
-    for p in FONT_SEARCH_PATHS:
-        if Path(p).exists():
-            if "Bold" in p and not FONT_PATH:
-                FONT_PATH = p
-            elif "Bold" not in p and not FONT_REGULAR_PATH:
-                FONT_REGULAR_PATH = p
-    if FONT_PATH:
+    """Проверяет наличие шрифтов."""
+    if Path(FONT_PATH).exists():
         logger.info(f"Шрифт найден: {FONT_PATH}")
     else:
-        logger.warning("Шрифт DejaVu не найден, используется default")
+        logger.warning(f"Шрифт не найден: {FONT_PATH}")
 
 # ─── 50 МАК карт ────────────────────────────────────────────────────────
 MAK_CARDS = [
