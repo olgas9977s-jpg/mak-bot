@@ -19,23 +19,28 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 # ─── Шрифт ──────────────────────────────────────────────────────────────
-FONT_DIR = Path("/tmp/fonts")
-FONT_PATH = FONT_DIR / "DejaVuSans-Bold.ttf"
-FONT_REGULAR_PATH = FONT_DIR / "DejaVuSans.ttf"
+FONT_SEARCH_PATHS = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/TTF/DejaVuSans.ttf",
+]
+FONT_PATH = None
+FONT_REGULAR_PATH = None
 
-def ensure_fonts():
-    """Скачивает шрифты DejaVu (поддержка кириллицы) если их нет."""
-    if FONT_PATH.exists():
-        return
-    FONT_DIR.mkdir(parents=True, exist_ok=True)
-    import urllib.request
-    base = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/"
-    for name in ["DejaVuSans-Bold.ttf", "DejaVuSans.ttf"]:
-        url = base + name
-        dest = FONT_DIR / name
-        logger.info(f"Скачиваю шрифт: {name}")
-        urllib.request.urlretrieve(url, dest)
-    logger.info("Шрифты загружены ✅")
+def find_fonts():
+    """Находит системные шрифты DejaVu."""
+    global FONT_PATH, FONT_REGULAR_PATH
+    for p in FONT_SEARCH_PATHS:
+        if Path(p).exists():
+            if "Bold" in p and not FONT_PATH:
+                FONT_PATH = p
+            elif "Bold" not in p and not FONT_REGULAR_PATH:
+                FONT_REGULAR_PATH = p
+    if FONT_PATH:
+        logger.info(f"Шрифт найден: {FONT_PATH}")
+    else:
+        logger.warning("Шрифт DejaVu не найден, используется default")
 
 # ─── 50 МАК карт ────────────────────────────────────────────────────────
 MAK_CARDS = [
@@ -124,10 +129,12 @@ def generate_card_image(card: dict) -> bytes:
 
     # Шрифты
     try:
-        font_big = ImageFont.truetype(str(FONT_PATH), 36)
-        font_medium = ImageFont.truetype(str(FONT_PATH), 24)
-        font_small = ImageFont.truetype(str(FONT_REGULAR_PATH), 18)
-        font_emoji = ImageFont.truetype(str(FONT_PATH), 80)
+        bold = FONT_PATH or FONT_REGULAR_PATH
+        regular = FONT_REGULAR_PATH or FONT_PATH
+        font_big = ImageFont.truetype(bold, 36)
+        font_medium = ImageFont.truetype(bold, 24)
+        font_small = ImageFont.truetype(regular, 18)
+        font_emoji = ImageFont.truetype(bold, 80)
     except Exception:
         font_big = ImageFont.load_default()
         font_medium = font_big
@@ -316,7 +323,7 @@ async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    ensure_fonts()
+    find_fonts()
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("card", card_command))
