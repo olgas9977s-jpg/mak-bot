@@ -15,6 +15,8 @@ from telegram.ext import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+BOT_VERSION = "2.1.0"  # для отслеживания деплоя
+
 # ─── Токены (задаются через переменные окружения) ───────────────────────
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
@@ -258,27 +260,46 @@ async def generate_message(card: dict) -> str:
 Пример стиля и длины (НЕ копируй, создай свою):
 «В маленькой бухте, где скалы обнимали воду, жила женщина, которая каждое утро опускала ладони в море. Она искала на дне что-то, чего не могла назвать. Волны приносили ей ракушки, водоросли, осколки стекла, обточенные временем до гладкости. Однажды она поняла: то, что она ищет, — не предмет. Это чувство. Чувство, что она на своём месте. И тогда она перестала искать и просто села на камень, слушая прибой. Море не изменилось. Но она впервые услышала его. А что, если то, что ты так долго ищешь, уже давно рядом — просто ждёт, пока ты остановишься?»"""
 
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": ANTHROPIC_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 600,
-                    "temperature": 1.0,
-                    "messages": [{"role": "user", "content": prompt}],
-                },
-            )
-            data = response.json()
-            return data["content"][0]["text"]
-    except Exception as e:
-        logger.error(f"Ошибка API Claude: {e}")
-        return f"Эта карта говорит тебе: {card['theme']}. Прислушайся к себе — что ты чувствуешь прямо сейчас?"
+    # Пробуем несколько моделей на случай недоступности
+    models = ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"]
+
+    for model in models:
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={
+                        "x-api-key": ANTHROPIC_API_KEY,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json",
+                    },
+                    json={
+                        "model": model,
+                        "max_tokens": 600,
+                        "temperature": 1.0,
+                        "messages": [{"role": "user", "content": prompt}],
+                    },
+                )
+
+                if response.status_code != 200:
+                    logger.warning(f"API вернул {response.status_code} для модели {model}: {response.text[:200]}")
+                    continue
+
+                data = response.json()
+                if "content" in data and len(data["content"]) > 0:
+                    logger.info(f"Сказка сгенерирована через модель {model}")
+                    return data["content"][0]["text"]
+                else:
+                    logger.warning(f"Пустой ответ от модели {model}: {data}")
+                    continue
+
+        except Exception as e:
+            logger.error(f"Ошибка API Claude ({model}): {e}")
+            continue
+
+    # Если все модели не сработали — fallback
+    logger.error("Все модели недоступны, используем fallback-текст")
+    return f"Эта карта говорит тебе: {card['theme']}. Прислушайся к себе — что ты чувствуешь прямо сейчас?"
 
 
 # ─── Отправка карты ──────────────────────────────────────────────────────
@@ -376,7 +397,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🎴 /card — вытянуть карту прямо сейчас\n"
         "🔔 /subscribe — получать карту каждое утро в 9:00\n"
         "🔕 /unsubscribe — отписаться от рассылки\n\n"
-        "_Просто нажми /card и доверься выбору_ ✨"
+        "_Просто нажми /card и доверься выбору_ ✨\n\n"
+        f"_v{BOT_VERSION}_"
     )
     await update.message.reply_text(text, parse_mode="Markdown")
 
@@ -443,7 +465,7 @@ def main():
         name="daily_card_broadcast",
     )
 
-    logger.info("Бот запущен. Рассылка настроена на 9:00 МСК ✅")
+    logger.info(f"Бот v{BOT_VERSION} запущен. Рассылка настроена на 9:00 МСК ✅")
     app.run_polling()
 
 
