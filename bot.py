@@ -1,9 +1,10 @@
 import os
+import json
 import random
 import logging
 import httpx
 import io
-from datetime import time
+from datetime import time, timezone, timedelta
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from telegram import Update
@@ -18,8 +19,33 @@ logger = logging.getLogger(__name__)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
-# ─── Шрифт ──────────────────────────────────────────────────────────────
+# ─── Московское время (UTC+3) ──────────────────────────────────────────
+MSK = timezone(timedelta(hours=3))
+
+# ─── Хранилище подписчиков ──────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent
+SUBSCRIBERS_FILE = BASE_DIR / "subscribers.json"
+
+def load_subscribers() -> set:
+    """Загружает список подписчиков из файла."""
+    if SUBSCRIBERS_FILE.exists():
+        try:
+            data = json.loads(SUBSCRIBERS_FILE.read_text())
+            return set(data)
+        except Exception as e:
+            logger.error(f"Ошибка чтения subscribers.json: {e}")
+    return set()
+
+def save_subscribers(subs: set):
+    """Сохраняет список подписчиков в файл."""
+    try:
+        SUBSCRIBERS_FILE.write_text(json.dumps(list(subs)))
+    except Exception as e:
+        logger.error(f"Ошибка записи subscribers.json: {e}")
+
+subscribers: set = load_subscribers()
+
+# ─── Шрифт ──────────────────────────────────────────────────────────────
 FONT_PATH = str(BASE_DIR / "fonts" / "DejaVuSans-Bold.ttf")
 FONT_REGULAR_PATH = str(BASE_DIR / "fonts" / "DejaVuSans.ttf")
 
@@ -156,7 +182,6 @@ def generate_card_image(card: dict) -> bytes:
         eh = bbox[3] - bbox[1]
         draw.text(((W - ew) // 2, 160), emoji_text, font=font_emoji, fill="white")
     except Exception:
-        # Если эмодзи не рендерится, рисуем декоративный круг
         draw.ellipse([(W//2-50, 180), (W//2+50, 280)], outline=border_color, width=2)
 
     # Декоративные звёздочки
@@ -173,7 +198,6 @@ def generate_card_image(card: dict) -> bytes:
     bbox = draw.textbbox((0, 0), card_name, font=font_big)
     tw = bbox[2] - bbox[0]
     name_y = 360
-    # Если название длинное — разбиваем на строки
     if tw > W - 60:
         words = card_name.split()
         mid = len(words) // 2
@@ -210,20 +234,26 @@ def generate_card_image(card: dict) -> bytes:
     return buf.getvalue()
 
 
-# ─── Генерация послания через Claude API ────────────────────────────────
+# ─── Генерация послания-сказки через Claude API ────────────────────────
 async def generate_message(card: dict) -> str:
-    """Генерирует психологическое послание через Claude API."""
-    prompt = f"""Ты — мудрый психолог и проводник. Клиент вытянул МАК карту авторской колоды "УМ В ГАРМОНИИ".
+    """Генерирует уникальную психологическую сказку для МАК карты через Claude API."""
+    prompt = f"""Ты — мудрая сказительница и психолог. Клиент вытянул МАК карту из авторской колоды "УМ В ГАРМОНИИ".
 
 Карта: «{card['name']}» ({card.get('name_en', '')}) {card.get('emoji', '🎴')}
-Психологическая тема: {card['theme']}
+Психологическая тема карты: {card['theme']}
 
-Напиши короткое психологическое послание для клиента (3-4 предложения):
-- Начни с наблюдения об образе и теме карты
-- Дай мягкий, глубокий вопрос для размышления
-- Заверши тёплым посланием-поддержкой
-- Пиши на «ты», тепло, без психологического жаргона
-- Не упоминай название карты в тексте"""
+Твоя задача — написать КОРОТКУЮ ПСИХОЛОГИЧЕСКУЮ СКАЗКУ (8–12 предложений), которая раскрывает тему этой карты. Требования:
+
+1. Сказка должна быть УНИКАЛЬНОЙ — с конкретным персонажем (девушка, старик, ребёнок, путник, мастерица и т.д.), местом (лес, гора, город у моря, пустыня, старый дом...) и маленьким сюжетом.
+2. В сказке должна быть МЕТАФОРА, связанная с образом карты — но НЕ называй карту по имени.
+3. Персонаж проходит через внутреннее открытие или трансформацию — от сомнения к пониманию, от страха к принятию, от потерянности к обретению.
+4. Заверши сказку МУДРОСТЬЮ или ВОПРОСОМ — одной фразой, которая обращается к читателю напрямую, на «ты».
+5. Пиши ЖИВЫМ, ОБРАЗНЫМ языком — с деталями, запахами, цветами, ощущениями. Не сухо, не шаблонно.
+6. Каждый раз создавай НОВУЮ историю — не повторяй сюжеты, персонажей и структуру.
+7. НЕ используй слова «сказка», «притча», «послание». Просто рассказывай историю.
+
+Пример стиля и длины (НЕ копируй, создай свою):
+«В маленькой бухте, где скалы обнимали воду, жила женщина, которая каждое утро опускала ладони в море. Она искала на дне что-то, чего не могла назвать. Волны приносили ей ракушки, водоросли, осколки стекла, обточенные временем до гладкости. Однажды она поняла: то, что она ищет, — не предмет. Это чувство. Чувство, что она на своём месте. И тогда она перестала искать и просто села на камень, слушая прибой. Море не изменилось. Но она впервые услышала его. А что, если то, что ты так долго ищешь, уже давно рядом — просто ждёт, пока ты остановишься?»"""
 
     try:
         async with httpx.AsyncClient(timeout=30) as client:
@@ -236,7 +266,8 @@ async def generate_message(card: dict) -> str:
                 },
                 json={
                     "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 300,
+                    "max_tokens": 600,
+                    "temperature": 1.0,
                     "messages": [{"role": "user", "content": prompt}],
                 },
             )
@@ -249,21 +280,19 @@ async def generate_message(card: dict) -> str:
 
 # ─── Отправка карты ──────────────────────────────────────────────────────
 async def send_card(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
-    """Отправляет случайную МАК карту с психологическим посланием."""
+    """Отправляет случайную МАК карту с психологической сказкой."""
     card = random.choice(MAK_CARDS)
     message_text = await generate_message(card)
 
     # Проверяем, есть ли реальное изображение карты
     image_bytes = None
     if card.get("image") and Path(card["image"]).exists():
-        # Используем реальное изображение
         with open(card["image"], "rb") as f:
             image_bytes = f.read()
-        logger.info(f"📸 Использую реальное изображение: {card['image']}")
+        logger.info(f"Использую реальное изображение: {card['image']}")
     else:
-        # Генерируем изображение программно
         image_bytes = generate_card_image(card)
-        logger.info(f"🎨 Генерирую изображение для карты #{card['id']}: {card['name']}")
+        logger.info(f"Генерирую изображение для карты #{card['id']}: {card['name']}")
 
     caption = (
         f"🎴 *Карта дня*\n\n"
@@ -275,13 +304,38 @@ async def send_card(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         f"_Напиши /card чтобы вытянуть новую карту_"
     )
 
-    # Отправляем фото с подписью
     await context.bot.send_photo(
         chat_id=chat_id,
         photo=image_bytes,
         caption=caption,
         parse_mode="Markdown",
     )
+
+
+# ─── Ежедневная рассылка ────────────────────────────────────────────────
+async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
+    """Отправляет карту дня ВСЕМ подписчикам."""
+    global subscribers
+    subscribers = load_subscribers()  # перечитываем на случай изменений
+    if not subscribers:
+        logger.info("Нет подписчиков для рассылки")
+        return
+
+    logger.info(f"Рассылка карты дня для {len(subscribers)} подписчиков")
+    failed = []
+    for chat_id in list(subscribers):
+        try:
+            await send_card(chat_id, context)
+        except Exception as e:
+            logger.error(f"Ошибка отправки для {chat_id}: {e}")
+            # Если пользователь заблокировал бота — удаляем из подписчиков
+            if "Forbidden" in str(e) or "blocked" in str(e).lower():
+                failed.append(chat_id)
+
+    if failed:
+        subscribers -= set(failed)
+        save_subscribers(subscribers)
+        logger.info(f"Удалено {len(failed)} заблокировавших бота подписчиков")
 
 
 # ─── Обработчики команд ──────────────────────────────────────────────────
@@ -304,43 +358,50 @@ async def card_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global subscribers
     chat_id = update.effective_chat.id
-    jobs = context.job_queue.get_jobs_by_name(str(chat_id))
-    if jobs:
+    if chat_id in subscribers:
         await update.message.reply_text("🔔 Ты уже подписан на карту дня!")
         return
 
-    context.job_queue.run_daily(
-        callback=lambda ctx: send_card(chat_id, ctx),
-        time=time(hour=9, minute=0),
-        name=str(chat_id),
-        chat_id=chat_id,
-    )
+    subscribers.add(chat_id)
+    save_subscribers(subscribers)
     await update.message.reply_text(
-        "✅ Отлично! Каждое утро в *9:00* ты будешь получать карту дня 🌸",
+        "✅ Отлично! Каждое утро в *9:00 по Москве* ты будешь получать карту дня 🌸",
         parse_mode="Markdown",
     )
 
 
 async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global subscribers
     chat_id = update.effective_chat.id
-    jobs = context.job_queue.get_jobs_by_name(str(chat_id))
-    if not jobs:
+    if chat_id not in subscribers:
         await update.message.reply_text("Ты не подписан на рассылку.")
         return
-    for job in jobs:
-        job.schedule_removal()
+
+    subscribers.discard(chat_id)
+    save_subscribers(subscribers)
     await update.message.reply_text("🔕 Рассылка отключена. Ты всегда можешь вернуться 💛")
 
 
 def main():
     find_fonts()
     app = Application.builder().token(TELEGRAM_TOKEN).build()
+
+    # Обработчики команд
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("card", card_command))
     app.add_handler(CommandHandler("subscribe", subscribe))
     app.add_handler(CommandHandler("unsubscribe", unsubscribe))
-    logger.info("Бот запущен ✅")
+
+    # Ежедневная рассылка в 9:00 по Москве (указываем tzinfo=MSK)
+    app.job_queue.run_daily(
+        callback=daily_broadcast,
+        time=time(hour=9, minute=0, tzinfo=MSK),
+        name="daily_card_broadcast",
+    )
+
+    logger.info("Бот запущен. Рассылка настроена на 9:00 МСК ✅")
     app.run_polling()
 
 
