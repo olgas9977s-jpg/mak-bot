@@ -259,7 +259,7 @@ async def generate_message(card: dict) -> str:
 «В маленькой бухте, где скалы обнимали воду, жила женщина, которая каждое утро опускала ладони в море. Она искала на дне что-то, чего не могла назвать. Волны приносили ей ракушки, водоросли, осколки стекла, обточенные временем до гладкости. Однажды она поняла: то, что она ищет, — не предмет. Это чувство. Чувство, что она на своём месте. И тогда она перестала искать и просто села на камень, слушая прибой. Море не изменилось. Но она впервые услышала его. А что, если то, что ты так долго ищешь, уже давно рядом — просто ждёт, пока ты остановишься?»"""
 
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             response = await client.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
@@ -297,20 +297,31 @@ async def send_card(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
         image_bytes = generate_card_image(card)
         logger.info(f"Генерирую изображение для карты #{card['id']}: {card['name']}")
 
+    # Короткая подпись к фото (лимит Telegram — 1024 символа)
     caption = (
         f"🎴 *Карта дня*\n\n"
         f"*№{card['id']} {card['name']}*\n"
         f"_{card.get('name_en', '')}_ {card['emoji']}\n\n"
-        f"_{card['theme']}_\n\n"
-        f"{message_text}\n\n"
-        f"─────────────────\n"
-        f"_Напиши /card чтобы вытянуть новую карту_"
+        f"_{card['theme']}_"
     )
 
+    # Отправляем фото с короткой подписью
     await context.bot.send_photo(
         chat_id=chat_id,
         photo=image_bytes,
         caption=caption,
+        parse_mode="Markdown",
+    )
+
+    # Отправляем сказку отдельным сообщением
+    tale_text = (
+        f"{message_text}\n\n"
+        f"─────────────────\n"
+        f"_Напиши /card чтобы вытянуть новую карту_ ✨"
+    )
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=tale_text,
         parse_mode="Markdown",
     )
 
