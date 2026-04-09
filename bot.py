@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
+# ─── Канал, на который нужно быть подписанным ──────────────────────────
+REQUIRED_CHANNEL = "@your_lpsychologistl"
+
 # ─── Московское время (UTC+3) ──────────────────────────────────────────
 MSK = timezone(timedelta(hours=3))
 
@@ -325,6 +328,10 @@ async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
     failed = []
     for chat_id in list(subscribers):
         try:
+            # Проверяем, подписан ли ещё на канал
+            if not await is_subscribed_to_channel(chat_id, context):
+                logger.info(f"Пользователь {chat_id} отписался от канала — пропускаем")
+                continue
             await send_card(chat_id, context)
         except Exception as e:
             logger.error(f"Ошибка отправки для {chat_id}: {e}")
@@ -336,6 +343,17 @@ async def daily_broadcast(context: ContextTypes.DEFAULT_TYPE):
         subscribers -= set(failed)
         save_subscribers(subscribers)
         logger.info(f"Удалено {len(failed)} заблокировавших бота подписчиков")
+
+
+# ─── Проверка подписки на канал ──────────────────────────────────────────
+async def is_subscribed_to_channel(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Проверяет, подписан ли пользователь на канал REQUIRED_CHANNEL."""
+    try:
+        member = await context.bot.get_chat_member(chat_id=REQUIRED_CHANNEL, user_id=user_id)
+        return member.status in ("member", "administrator", "creator")
+    except Exception as e:
+        logger.error(f"Ошибка проверки подписки на канал для {user_id}: {e}")
+        return False
 
 
 # ─── Обработчики команд ──────────────────────────────────────────────────
@@ -360,6 +378,19 @@ async def card_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global subscribers
     chat_id = update.effective_chat.id
+    user_id = update.effective_user.id
+
+    # Проверяем подписку на канал
+    if not await is_subscribed_to_channel(user_id, context):
+        await update.message.reply_text(
+            f"🔒 Чтобы получать карту дня, сначала подпишись на мой канал 👇\n\n"
+            f"📢 [Подписаться на канал](https://t.me/your_lpsychologistl)\n\n"
+            f"После подписки нажми /subscribe ещё раз 🌸",
+            parse_mode="Markdown",
+            disable_web_page_preview=True,
+        )
+        return
+
     if chat_id in subscribers:
         await update.message.reply_text("🔔 Ты уже подписан на карту дня!")
         return
