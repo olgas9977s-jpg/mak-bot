@@ -2,7 +2,6 @@ import os
 import json
 import random
 import logging
-import httpx
 import io
 from datetime import time, timezone, timedelta
 from pathlib import Path
@@ -15,11 +14,10 @@ from telegram.ext import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BOT_VERSION = "2.1.0"  # для отслеживания деплоя
+BOT_VERSION = "3.0.0"  # v3: встроенные сказки из tales.json
 
 # ─── Токены (задаются через переменные окружения) ───────────────────────
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 # ─── Канал, на который нужно быть подписанным ──────────────────────────
 REQUIRED_CHANNEL = "@your_lpsychologistl"
@@ -49,6 +47,24 @@ def save_subscribers(subs: set):
         logger.error(f"Ошибка записи subscribers.json: {e}")
 
 subscribers: set = load_subscribers()
+
+# ─── Загрузка сказок из tales.json ─────────────────────────────────────
+TALES_FILE = BASE_DIR / "tales.json"
+
+def load_tales() -> dict:
+    """Загружает предварительно написанные сказки из tales.json."""
+    if TALES_FILE.exists():
+        try:
+            data = json.loads(TALES_FILE.read_text(encoding="utf-8"))
+            logger.info(f"Загружено сказок для {len(data)} карт из tales.json")
+            return data
+        except Exception as e:
+            logger.error(f"Ошибка чтения tales.json: {e}")
+    else:
+        logger.warning("tales.json не найден!")
+    return {}
+
+TALES: dict = load_tales()
 
 # ─── Шрифт ──────────────────────────────────────────────────────────────
 FONT_PATH = str(BASE_DIR / "fonts" / "DejaVuSans-Bold.ttf")
@@ -239,66 +255,15 @@ def generate_card_image(card: dict) -> bytes:
     return buf.getvalue()
 
 
-# ─── Генерация послания-сказки через Claude API ────────────────────────
-async def generate_message(card: dict) -> str:
-    """Генерирует уникальную психологическую сказку для МАК карты через Claude API."""
-    prompt = f"""Ты — мудрая сказительница и психолог. Клиент вытянул МАК карту из авторской колоды "УМ В ГАРМОНИИ".
-
-Карта: «{card['name']}» ({card.get('name_en', '')}) {card.get('emoji', '🎴')}
-Психологическая тема карты: {card['theme']}
-
-Твоя задача — написать КОРОТКУЮ ПСИХОЛОГИЧЕСКУЮ СКАЗКУ (8–12 предложений), которая раскрывает тему этой карты. Требования:
-
-1. Сказка должна быть УНИКАЛЬНОЙ — с конкретным персонажем (девушка, старик, ребёнок, путник, мастерица и т.д.), местом (лес, гора, город у моря, пустыня, старый дом...) и маленьким сюжетом.
-2. В сказке должна быть МЕТАФОРА, связанная с образом карты — но НЕ называй карту по имени.
-3. Персонаж проходит через внутреннее открытие или трансформацию — от сомнения к пониманию, от страха к принятию, от потерянности к обретению.
-4. Заверши сказку МУДРОСТЬЮ или ВОПРОСОМ — одной фразой, которая обращается к читателю напрямую, на «ты».
-5. Пиши ЖИВЫМ, ОБРАЗНЫМ языком — с деталями, запахами, цветами, ощущениями. Не сухо, не шаблонно.
-6. Каждый раз создавай НОВУЮ историю — не повторяй сюжеты, персонажей и структуру.
-7. НЕ используй слова «сказка», «притча», «послание». Просто рассказывай историю.
-
-Пример стиля и длины (НЕ копируй, создай свою):
-«В маленькой бухте, где скалы обнимали воду, жила женщина, которая каждое утро опускала ладони в море. Она искала на дне что-то, чего не могла назвать. Волны приносили ей ракушки, водоросли, осколки стекла, обточенные временем до гладкости. Однажды она поняла: то, что она ищет, — не предмет. Это чувство. Чувство, что она на своём месте. И тогда она перестала искать и просто села на камень, слушая прибой. Море не изменилось. Но она впервые услышала его. А что, если то, что ты так долго ищешь, уже давно рядом — просто ждёт, пока ты остановишься?»"""
-
-    # Пробуем несколько моделей на случай недоступности
-    models = ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"]
-
-    for model in models:
-        try:
-            async with httpx.AsyncClient(timeout=60) as client:
-                response = await client.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers={
-                        "x-api-key": ANTHROPIC_API_KEY,
-                        "anthropic-version": "2023-06-01",
-                        "content-type": "application/json",
-                    },
-                    json={
-                        "model": model,
-                        "max_tokens": 600,
-                        "temperature": 1.0,
-                        "messages": [{"role": "user", "content": prompt}],
-                    },
-                )
-
-                if response.status_code != 200:
-                    logger.warning(f"API вернул {response.status_code} для модели {model}: {response.text[:200]}")
-                    continue
-
-                data = response.json()
-                if "content" in data and len(data["content"]) > 0:
-                    logger.info(f"Сказка сгенерирована через модель {model}")
-                    return data["content"][0]["text"]
-                else:
-                    logger.warning(f"Пустой ответ от модели {model}: {data}")
-                    continue
-
-        except Exception as e:
-            logger.error(f"Ошибка API Claude ({model}): {e}")
-            continue
-
-    # Если все модели не сработали — fallback
-    logger.error("Все модели недоступны, используем fallback-текст")
+# ─── Выбор сказки из tales.json ────────────────────────────────────────
+def get_tale_for_card(card: dict) -> str:
+    """Выбирает случайную сказку из предварительно написанных для данной карты."""
+    card_id = str(card["id"])
+    if card_id in TALES and TALES[card_id]:
+        tale = random.choice(TALES[card_id])
+        logger.info(f"Сказка выбрана для карты #{card_id} ({card['name']})")
+        return tale
+    logger.warning(f"Нет сказок для карты #{card_id}, используем fallback")
     return f"Эта карта говорит тебе: {card['theme']}. Прислушайся к себе — что ты чувствуешь прямо сейчас?"
 
 
@@ -306,7 +271,7 @@ async def generate_message(card: dict) -> str:
 async def send_card(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
     """Отправляет случайную МАК карту с психологической сказкой."""
     card = random.choice(MAK_CARDS)
-    message_text = await generate_message(card)
+    message_text = get_tale_for_card(card)
 
     # Проверяем, есть ли реальное изображение карты
     image_bytes = None
